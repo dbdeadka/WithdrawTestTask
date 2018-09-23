@@ -1,0 +1,26 @@
+{
+    "version": "1.0.0",
+    "name": "BITAPP",
+    "minimum-stability": "stable",
+    "type": "library",
+    "description": "Test task",
+    "license": "Unlicense",
+    "authors": [
+        {
+            "name": "%YOUR_ADVERTISEMENT_COULD_BE_HERE%",
+            "email": "mail@mail.mail"
+        }
+    ],
+    "require": {
+		"php": "7.1.*"
+    },
+    "config": {
+        "disable-tls": true,
+        "secure-http": false
+    },
+    "autoload": {
+        "psr-4": {
+            "BITAPP\\": "src/BITAPP\\"
+        }
+    }
+}
