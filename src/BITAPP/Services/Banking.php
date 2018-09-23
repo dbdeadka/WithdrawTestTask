@@ -28,7 +28,6 @@ class Banking extends AbstractManager
         if (is_null($user->getId() || is_null($user->getBalance()))) {
             throw new \InvalidArgumentException('Invalid user');
         }
-        UserMapper::changeBalance($user, $amount);
-        return $user;
+        return UserMapper::changeBalance($user, $amount);
     }
 }

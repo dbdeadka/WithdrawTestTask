@@ -51,16 +51,38 @@ SELECT
 FROM 
   ' . self::getTableName() . ' 
 WHERE 
-  `user_id` = ' . (int)$id . '
+  `user_id` = ' . $id . '
         ';
         if ($lock) {
             $query .= ' FOR UPDATE';
         }
         $result = Database::get()->getResult($query);
-        if (empty($result)) {
-            return null;
+        return empty($result) ? null : self::createEntityFromDB($result[0]);
+    }
+
+    /**
+     * @param int $id
+     * @param bool $lock
+     * @throws \RuntimeException
+     * @return User
+     */
+    public static function getUser(int $id, bool $lock) : User
+    {
+        $user = self::loadById($id, $lock);
+        if (is_null($user)) {
+            throw new \RuntimeException('No user with id = ' . $id);
         }
-        return self::createEntityFromDB($result[0]);
+        return $user;
+    }
+
+    /**
+     * @param int $id
+     * @param bool $lock
+     * @return User|null
+     */
+    public static function find(int $id, bool $lock) : ?User
+    {
+        return self::loadById($id, $lock);
     }
 
     /**
@@ -88,6 +110,11 @@ WHERE
         return self::createEntityFromDB($result[0]);
     }
 
+    /**
+     * @param User $user
+     * @param int $amount
+     * @return User
+     */
     public static function changeBalance(User $user, int $amount)
     {
         $balance = $user->getBalance() - $amount;

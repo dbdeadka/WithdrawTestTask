@@ -3,6 +3,7 @@
 namespace BITAPP\Services;
 
 use \BITAPP\AbstractManager;
+use BITAPP\Core\RouteData;
 
 /**
  * @method static Router get()
@@ -13,9 +14,7 @@ class Router extends AbstractManager
 
     private $routers = [];
 
-    const ROUT_MAIN = 'main'; //HUERAGA - may be luchshe enum? ili urlmatcher?
-    const ROUT_HANDLEREDIRECT2AUTH  = 'handleRedirect2AuthAction';
-    const ROUT_RENDERAUTHFORM  = 'auth';
+    const ROUT_MAIN = 'main';
     const ROUT_LOGIN = 'login';
     const ROUT_DASHBOARD = 'dashboard';
     const ROUT_LOGOUT = 'logout';
@@ -24,29 +23,65 @@ class Router extends AbstractManager
 
     public function init()
     {
-        $this->setRoute(self::ROUT_MAIN, 'BITAPP\Controllers\MainController::handleMain');
-        $this->setRoute(self::ROUT_RENDERAUTHFORM, 'BITAPP\Controllers\MainController::renderAuthFormAction');
-        $this->setRoute(self::ROUT_LOGIN, 'BITAPP\Controllers\MainController::loginAction');
-        $this->setRoute(self::ROUT_DASHBOARD, 'BITAPP\Controllers\PrivateRoomController::renderAction');
-        $this->setRoute(self::ROUT_WITHDRAWAL, 'BITAPP\Controllers\PrivateRoomController::withdrawalAction');
-        $this->setRoute(self::ROUT_LOGOUT, 'BITAPP\Controllers\PrivateRoomController::logoutAction');
-        $this->setRoute(self::ROUT_RENDER404PAGE, 'BITAPP\Controllers\MainController::render404PageAction');
+        $this->setRoute(
+            self::ROUT_MAIN,
+            (new RouteData())
+                ->setController('BITAPP\Controllers\MainController')
+                ->setMethod('renderAuthFormAction')
+        );
+        $this->setRoute(
+            self::ROUT_LOGIN,
+            (new RouteData())
+                ->setController('BITAPP\Controllers\MainController')
+                ->setMethod('loginAction')
+        );
+        $this->setRoute(
+            self::ROUT_DASHBOARD,
+            (new RouteData())
+                ->setController('BITAPP\Controllers\PrivateRoomController')
+                ->setMethod('renderAction')
+        );
+        $this->setRoute(
+            self::ROUT_WITHDRAWAL,
+            (new RouteData())
+                ->setController('BITAPP\Controllers\PrivateRoomController')
+                ->setMethod('withdrawalAction')
+        );
+        $this->setRoute(
+            self::ROUT_LOGOUT,
+            (new RouteData())
+                ->setController('BITAPP\Controllers\PrivateRoomController')
+                ->setMethod('logoutAction')
+        );
+        $this->setRoute(
+            self::ROUT_RENDER404PAGE,
+            (new RouteData())
+                ->setController('BITAPP\Controllers\MainController')
+                ->setMethod('render404PageAction')
+        );
     }
 
     /**
      * @param string $route
-     * @param string $function
+     * @param RouteData $routeData
+     * @throws \InvalidArgumentException
      */
-    public function setRoute(string $route, string $function)
+    public function setRoute(string $route, RouteData $routeData)
     {
-        assert(!empty($route));
-        assert(!empty($function));
-        $this->routers[$route] = $function;
+        if (empty($route)) {
+            throw new \InvalidArgumentException('Empty route.');
+        }
+        if (is_null($routeData->getController()) || empty($routeData->getController())) {
+            throw new \InvalidArgumentException('Empty controller in routerData.');
+        }
+        if (is_null($routeData->getMethod()) || empty($routeData->getMethod())) {
+            throw new \InvalidArgumentException('Empty method in routerData.');
+        }
+        $this->routers[$route] = $routeData;
     }
 
-    public static function makeRenderArguments(string $uri, array &$params, array &$errors)
+    public static function createArgumentsFromURI(string $uri, array &$params, array &$errors)
     {
-        //HUERAGA - may be beter separate class?
         parse_str(urldecode($uri), $parseResult);
         $params = [];
         $errors = [];
@@ -77,16 +112,15 @@ class Router extends AbstractManager
 
     /**
      * @throws \RuntimeException
-     * @return string
+     * @return RouteData
      */
-    public function dispatch() : string
+    public function dispatch() : RouteData
     {
         $route = $_SERVER['REQUEST_URI'];
         $pos = strpos($route, '?');
         if ($pos) {
             $route = substr($route, 0, $pos);
         }
-
         if ('/' === $route) {
             $route = '/' . self::ROUT_MAIN;
         }
@@ -94,10 +128,10 @@ class Router extends AbstractManager
         switch ($route) {
             case '/' . self::ROUT_MAIN:
                 return $this->routers[self::ROUT_MAIN];
-            case '/' . self::ROUT_RENDERAUTHFORM:
-                return $this->routers[self::ROUT_RENDERAUTHFORM];
             case '/' . self::ROUT_LOGIN:
                 return $this->routers[self::ROUT_LOGIN];
+            case '/' . self::ROUT_DASHBOARD:
+                return $this->routers[self::ROUT_DASHBOARD];
             case '/' . self::ROUT_WITHDRAWAL:
                 return $this->routers[self::ROUT_WITHDRAWAL];
             case '/' . self::ROUT_LOGOUT:

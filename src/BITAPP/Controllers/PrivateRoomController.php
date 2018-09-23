@@ -18,13 +18,10 @@ class PrivateRoomController
     public function renderAction() : string
     {
         $userId = (int)Session::get()->getUserId();
-        $user = UserMapper::loadById($userId, false);
-        if (is_null($user)) {
-            throw new \RuntimeException('No user with id = ' . $userId);
-        }
+        $user = UserMapper::getUser($userId, false);
         $params = [];
         $errors = [];
-        Router::makeRenderArguments($_SERVER['QUERY_STRING'], $params, $errors);
+        Router::createArgumentsFromURI($_SERVER['QUERY_STRING'], $params, $errors);
         $params['balance'] = Money::moneyFormat($user->getBalance());
         return View::template('dashboard', $params, $errors);
     }
@@ -41,10 +38,7 @@ class PrivateRoomController
 
         try {
             Database::get()->beginTransaction();
-            $user = UserMapper::loadById($user_id, true);
-            if (is_null($user)) {
-                throw new \RuntimeException('No such user');
-            }
+            $user = UserMapper::getUser($user_id, true);
             $amount = (int)$_POST['amount'];
             if ($amount <= 0) {
                 $errors['amount'] = 'Sum must be positive integer';
@@ -67,7 +61,7 @@ class PrivateRoomController
             }
         }
         $params = ['balance' => Money::moneyFormat($user->getBalance())];
-        Router::get()->redirect(Router::ROUT_MAIN, $params, $errors);
+        Router::get()->redirect(Router::ROUT_DASHBOARD, $params, $errors);
         return '';
     }
 

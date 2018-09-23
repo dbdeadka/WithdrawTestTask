@@ -3,6 +3,7 @@
 namespace BITAPP\Services;
 
 use \BITAPP\AbstractManager;
+use BITAPP\Core\RouteData;
 
 /**
  * @method static Firewall get()
@@ -19,8 +20,6 @@ class Firewall extends AbstractManager
     const CONTROLLER_MAIN = 'BITAPP\Controllers\MainController';
     const CONTROLLER_PRIVATEROOM = 'BITAPP\Controllers\PrivateRoomController';
 
-    const ROUT_RENDER404PAGE = 'render404PageAction';
-
     public function init()
     {
         $this->zones = [];
@@ -31,41 +30,36 @@ class Firewall extends AbstractManager
     }
 
     /**
-     * @param string $path
-     * @param string $controllerClassName
-     * @param string $methodName
+     * @param RouteData $routeData
      * @throws \RuntimeException
-     * @return bool
+     * @return RouteData
      */
-    public function handle(string $path, string& $controllerClassName, string& $methodName) : bool
+    public function handle(RouteData $routeData) : RouteData
     {
-        list($controllerClassName, $methodName) = explode('::', $path);
-        assert(
-            isset($this->zones[self::ZONE_ANON][$controllerClassName])
-                ||
-            isset($this->zones[self::ZONE_AUTH][$controllerClassName])
-        );
+        if ((!isset($this->zones[self::ZONE_ANON][$routeData->getController()]))
+                &&
+            (!isset($this->zones[self::ZONE_AUTH][$routeData->getController()]))) {
+            throw new \RuntimeException('Invalid controller name (no such zone): ' . $routeData->getController());
+        }
 
-        if ((self::CONTROLLER_MAIN == $controllerClassName) && ('handleMain' == $methodName)) {
+        if ((self::CONTROLLER_MAIN == $routeData->getController())
+            && ('renderAuthFormAction' == $routeData->getMethod())) {
             if (Session::get()->isLogged()) {
-                $controllerClassName = 'BITAPP\Controllers\PrivateRoomController';
-                $methodName = 'renderAction';
-            } else {
-                $controllerClassName = 'BITAPP\Controllers\MainController';
-                $methodName = 'renderAuthFormAction';
+                $routeData->setController(self::CONTROLLER_PRIVATEROOM);
+                $routeData->setMethod('renderAction');
             }
-            return true;
+            return $routeData;
         }
 
         if (Session::get()->isLogged()) {
-            if (isset($this->zones[self::ZONE_ANON][$controllerClassName])) {
-                return false;
+            if (isset($this->zones[self::ZONE_ANON][$routeData->getController()])) {
+                throw new \RuntimeException('Invalid zone');
             }
         } else {
-            if (isset($this->zones[self::ZONE_AUTH][$controllerClassName])) {
-                return false;
+            if (isset($this->zones[self::ZONE_AUTH][$routeData->getController()])) {
+                throw new \RuntimeException('Invalid zone');
             }
         }
-        return true;
+        return $routeData;
     }
 }

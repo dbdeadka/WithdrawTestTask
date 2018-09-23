@@ -28,21 +28,15 @@ class Application
     public function process()
     {
         $dispatchResult = Router::get()->dispatch();
-        if (empty($dispatchResult)) {
-            throw new \RuntimeException('Bad dispatch "' . serialize($_SERVER));
-        }
-        $controllerClassName = '';
-        $method = '';
-        if (!Firewall::get()->handle($dispatchResult, $controllerClassName, $method)) {
-            throw new \RuntimeException('Firewall did not pass "' . $dispatchResult . '"');
-        }
-        if (!is_callable([$controllerClassName, $method])) {
+        $dispatchResult = Firewall::get()->handle($dispatchResult);
+        if (!is_callable([$dispatchResult->getController(), $dispatchResult->getMethod()])) {
             throw new \RuntimeException('Bad controller "' . $controllerClassName
                 . '" or method "' . $method . '" passed');
         }
-
+        $controllerClassName = $dispatchResult->getController();
+        $methodName = $dispatchResult->getMethod();
         $controller = new $controllerClassName;
-        $output = $controller->{$method}();
+        $output = $controller->{$methodName}();
         if (!empty($output)) {
             echo $output;
         }
