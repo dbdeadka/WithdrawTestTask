@@ -18,6 +18,7 @@ use \BITAPP\Core\Response;
             <div>Login:</div>
             <input name="login" value="<?php
             if (isset($params['login'])) {
+                /** @noinspection PhpUndefinedVariableInspection */
                 print $params['login'];
             }
             ?>">

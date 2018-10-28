@@ -14,6 +14,7 @@ class PrivateRoomController
 {
     /**
      * @return string
+     * @throws \RuntimeException
      */
     public function renderAction() : string
     {
@@ -55,9 +56,6 @@ class PrivateRoomController
         } catch (\Exception $ex) {
             if (Database::get()->inTransaction()) {
                 Database::get()->rollBack();
-            }
-            if (!$user) {
-                throw new \RuntimeException('No such user');
             }
         }
         $params = ['balance' => Money::moneyFormat($user->getBalance())];

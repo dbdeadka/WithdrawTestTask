@@ -16,9 +16,7 @@ class Config extends AbstractManager
 
     /**
      * @param string $fpath
-     *
      * @return $this
-     *
      * @throws \InvalidArgumentException
      */
     public function load(string $fpath): self

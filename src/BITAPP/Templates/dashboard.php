@@ -10,7 +10,8 @@ use \BITAPP\Core\Response;
 <form method="post" action="logout"><button type="submit" name="btnlogout">Logout</button></form>
 <div>
     <span>Balance (BTC):</span>
-    <span><b><?=$params['balance']?></b></span>
+    <span><b><?= /** @noinspection PhpUndefinedVariableInspection */
+            $params['balance']?></b></span>
 </div>
     <form method="post" action="withdrawal">
     <label>

@@ -26,7 +26,7 @@ class Response
      */
     public static function getError(string $field) : ?string
     {
-        return isset(self::$error[$field]) ? self::$error[$field] : null;
+        return self::$error[$field] ?? null;
     }
 
     /**

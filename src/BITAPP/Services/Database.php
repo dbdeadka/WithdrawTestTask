@@ -18,16 +18,18 @@ class Database extends AbstractManager
 
     /**
      * @throws \RuntimeException
+     * @throws \InvalidArgumentException
      */
-    public function init()
+    public function init() : void
     {
         $this->connect();
     }
 
     /**
+     * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
-    private function connect()
+    private function connect() : void
     {
         $dbconfig = Config::get()->getConfig('DB');
         $mysql_dsn = sprintf(
@@ -50,7 +52,7 @@ class Database extends AbstractManager
     /**
      * @return \PDO
      */
-    public function getConnHandler()
+    public function getConnHandler() : \PDO
     {
         return $this->connHander;
     }
@@ -59,7 +61,7 @@ class Database extends AbstractManager
      * @param string $query
      * @throws \RuntimeException
      */
-    public function execute(string $query)
+    public function execute(string $query) : void
     {
         $statement = $this->connHander->prepare($query);
         $res = $statement->execute();
@@ -110,22 +112,22 @@ class Database extends AbstractManager
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function beginTransaction()
+    public function beginTransaction() : void
     {
         $this->connHander->beginTransaction();
     }
 
-    public function rollBack()
+    public function rollBack() : void
     {
         $this->connHander->rollBack();
     }
 
-    public function commit()
+    public function commit() : void
     {
         $this->connHander->commit();
     }
 
-    public function inTransaction()
+    public function inTransaction() : bool
     {
         return $this->connHander->inTransaction();
     }

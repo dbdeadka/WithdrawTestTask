@@ -16,16 +16,16 @@ class Banking extends AbstractManager
     /**
      * @param User $user
      * @param int $amount
+     * @return User
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
-     * @return User
      */
-    public function withdrawal(User $user, int $amount)
+    public function withdrawal(User $user, int $amount) : User
     {
         if ($amount <= 0) {
             throw new \InvalidArgumentException('Invalid $amount = ' . $amount);
         }
-        if (is_null($user->getId() || is_null($user->getBalance()))) {
+        if ((null === $user->getId()) || \is_null($user->getBalance())) {
             throw new \InvalidArgumentException('Invalid user');
         }
         return UserMapper::changeBalance($user, $amount);

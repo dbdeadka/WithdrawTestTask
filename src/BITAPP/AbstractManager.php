@@ -14,14 +14,14 @@ abstract class AbstractManager
 
     public static function get()
     {
-        if (is_null(static::$instance)) {
-            $class = get_called_class();
+        if (null === static::$instance) {
+            $class = \get_called_class(); //HUERAGA static::class can be used instead
             static::$instance = new $class();
         }
         return static::$instance;
     }
 
-    protected function init()
+    protected function init() : void
     {
     }
 }

@@ -38,6 +38,7 @@ class UserMapper extends AbstractMapper
      * @param int $id
      * @param bool $lock
      * @return User|null
+     * @throws \RuntimeException
      */
     public static function loadById(int $id, bool $lock) : ?User
     {
@@ -63,13 +64,13 @@ WHERE
     /**
      * @param int $id
      * @param bool $lock
-     * @throws \RuntimeException
      * @return User
+     * @throws \RuntimeException
      */
     public static function getUser(int $id, bool $lock) : User
     {
         $user = self::loadById($id, $lock);
-        if (is_null($user)) {
+        if (null === $user) {
             throw new \RuntimeException('No user with id = ' . $id);
         }
         return $user;
@@ -79,6 +80,7 @@ WHERE
      * @param int $id
      * @param bool $lock
      * @return User|null
+     * @throws \RuntimeException
      */
     public static function find(int $id, bool $lock) : ?User
     {
@@ -88,6 +90,7 @@ WHERE
     /**
      * @param string $login
      * @return User|null
+     * @throws \RuntimeException
      */
     public static function loadByLogin(string $login) : ?User
     {
@@ -104,18 +107,16 @@ WHERE
   `user_login` = ' . Database::get()->getConnHandler()->quote($login) . '
         ';
         $result = Database::get()->getResult($sql);
-        if (empty($result)) {
-            return null;
-        }
-        return self::createEntityFromDB($result[0]);
+        return empty($result) ? null : self::createEntityFromDB($result[0]);
     }
 
     /**
      * @param User $user
      * @param int $amount
      * @return User
+     * @throws \RuntimeException
      */
-    public static function changeBalance(User $user, int $amount)
+    public static function changeBalance(User $user, int $amount) : User
     {
         $balance = $user->getBalance() - $amount;
         $query = '

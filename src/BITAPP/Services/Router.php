@@ -3,7 +3,9 @@
 namespace BITAPP\Services;
 
 use \BITAPP\AbstractManager;
-use BITAPP\Core\RouteData;
+use BITAPP\Core\ControllerStruct;
+use BITAPP\Controllers\MainController;
+use BITAPP\Controllers\PrivateRoomController;
 
 /**
  * @method static Router get()
@@ -14,88 +16,93 @@ class Router extends AbstractManager
 
     private $routers = [];
 
-    const ROUT_MAIN = 'main';
-    const ROUT_LOGIN = 'login';
-    const ROUT_DASHBOARD = 'dashboard';
-    const ROUT_LOGOUT = 'logout';
-    const ROUT_WITHDRAWAL = 'withdrawal';
-    const ROUT_RENDER404PAGE = 'render404PageAction';
+    public const ROUT_MAIN = 'main';
+    public const ROUT_LOGIN = 'login';
+    public const ROUT_DASHBOARD = 'dashboard';
+    public const ROUT_LOGOUT = 'logout';
+    public const ROUT_WITHDRAWAL = 'withdrawal';
+    public const ROUT_RENDER404PAGE = 'render404PageAction';
 
-    public function init()
+    /**
+     * @throws \InvalidArgumentException If the provided argument $section is empty
+     */
+    public function init() : void
     {
         $this->setRoute(
             self::ROUT_MAIN,
-            (new RouteData())
-                ->setController('BITAPP\Controllers\MainController')
+            (new ControllerStruct())
+                ->setController(MainController::class)
                 ->setMethod('renderAuthFormAction')
         );
         $this->setRoute(
             self::ROUT_LOGIN,
-            (new RouteData())
-                ->setController('BITAPP\Controllers\MainController')
+            (new ControllerStruct())
+                ->setController(MainController::class)
                 ->setMethod('loginAction')
         );
         $this->setRoute(
             self::ROUT_DASHBOARD,
-            (new RouteData())
-                ->setController('BITAPP\Controllers\PrivateRoomController')
+            (new ControllerStruct())
+                ->setController(PrivateRoomController::class)
                 ->setMethod('renderAction')
         );
         $this->setRoute(
             self::ROUT_WITHDRAWAL,
-            (new RouteData())
-                ->setController('BITAPP\Controllers\PrivateRoomController')
+            (new ControllerStruct())
+                ->setController(PrivateRoomController::class)
                 ->setMethod('withdrawalAction')
         );
         $this->setRoute(
             self::ROUT_LOGOUT,
-            (new RouteData())
-                ->setController('BITAPP\Controllers\PrivateRoomController')
+            (new ControllerStruct())
+                ->setController(PrivateRoomController::class)
                 ->setMethod('logoutAction')
         );
         $this->setRoute(
             self::ROUT_RENDER404PAGE,
-            (new RouteData())
-                ->setController('BITAPP\Controllers\MainController')
+            (new ControllerStruct())
+                ->setController(MainController::class)
                 ->setMethod('render404PageAction')
         );
     }
 
     /**
      * @param string $route
-     * @param RouteData $routeData
+     * @param ControllerStruct $controllerStruct
      * @throws \InvalidArgumentException
      */
-    public function setRoute(string $route, RouteData $routeData)
+    public function setRoute(string $route, ControllerStruct $controllerStruct) : void
     {
         if (empty($route)) {
             throw new \InvalidArgumentException('Empty route.');
         }
-        if (is_null($routeData->getController()) || empty($routeData->getController())) {
+        $controllerName =  $controllerStruct->getController();
+        if ((null === $controllerName) || ('' === $controllerName)) {
             throw new \InvalidArgumentException('Empty controller in routerData.');
         }
-        if (is_null($routeData->getMethod()) || empty($routeData->getMethod())) {
+        $methodName =  $controllerStruct->getMethod();
+        if ((null === $methodName) || ('' === $methodName)) {
             throw new \InvalidArgumentException('Empty method in routerData.');
         }
-        $this->routers[$route] = $routeData;
+        $this->routers[$route] = $controllerStruct;
     }
 
-    public static function createArgumentsFromURI(string $uri, array &$params, array &$errors)
+    public static function createArgumentsFromURI(string $uri, array &$params, array &$errors) : void
     {
         parse_str(urldecode($uri), $parseResult);
         $params = [];
         $errors = [];
-        foreach ($parseResult as $key => $val) {
-            if (substr($key, 0, 5) == 'err__') {
-                $errors [substr($key, 5)] = $val;
+        foreach (/**@var array $parseResult*/$parseResult as $key => $val) {
+            if (0 === strncmp($key, 'err__', 5)) {
+                $errors [(string)substr($key, 5/*5 is the lentgth of 'err__'*/)] = $val;
             }
-            if (substr($key, 0, 5) == 'par__') {
-                $params [substr($key, 5)] = $val;
+            if (0 === strncmp($key, 'par__', 5)) {
+                $params [(string)substr($key, 5/*5 is the lentgth of 'par__'*/)] = $val;
             }
         }
     }
 
-    public function redirect(string $route, array $fields = [], array $errors = [])
+    public function redirect(string $route, array $fields = [], array $errors = []) : void
     {
         $parameters = [];
         foreach ($fields as $field => $val) {
@@ -111,33 +118,43 @@ class Router extends AbstractManager
     }
 
     /**
+     * @return ControllerStruct
      * @throws \RuntimeException
-     * @return RouteData
      */
-    public function dispatch() : RouteData
+    public function dispatch() : ControllerStruct
     {
         $route = $_SERVER['REQUEST_URI'];
         $pos = strpos($route, '?');
         if ($pos) {
             $route = substr($route, 0, $pos);
         }
-        if ('/' === $route) {
-            $route = '/' . self::ROUT_MAIN;
+        if ('/' === $route[0]) {
+            $route = substr($route, 1);
         }
-
+        if (empty($route)) {
+            $route = self::ROUT_MAIN;
+        }
+        $result = null;
         switch ($route) {
-            case '/' . self::ROUT_MAIN:
-                return $this->routers[self::ROUT_MAIN];
-            case '/' . self::ROUT_LOGIN:
-                return $this->routers[self::ROUT_LOGIN];
-            case '/' . self::ROUT_DASHBOARD:
-                return $this->routers[self::ROUT_DASHBOARD];
-            case '/' . self::ROUT_WITHDRAWAL:
-                return $this->routers[self::ROUT_WITHDRAWAL];
-            case '/' . self::ROUT_LOGOUT:
-                return $this->routers[self::ROUT_LOGOUT];
+            case self::ROUT_MAIN:
+                $result = $this->routers[self::ROUT_MAIN];
+                break;
+            case self::ROUT_LOGIN:
+                $result = $this->routers[self::ROUT_LOGIN];
+                break;
+            case self::ROUT_DASHBOARD:
+                $result = $this->routers[self::ROUT_DASHBOARD];
+                break;
+            case self::ROUT_WITHDRAWAL:
+                $result = $this->routers[self::ROUT_WITHDRAWAL];
+                break;
+            case self::ROUT_LOGOUT:
+                $result = $this->routers[self::ROUT_LOGOUT];
+                break;
             default:
-                return $this->routers[self::ROUT_RENDER404PAGE];
+                $result = $this->routers[self::ROUT_RENDER404PAGE];
+                break;
         }
+        return $result;
     }
 }

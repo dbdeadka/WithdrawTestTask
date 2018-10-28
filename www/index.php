@@ -17,10 +17,9 @@ try {
     $btcapp = new \BITAPP\Core\Application();
     $btcapp->process();
 } catch (\Exception $ex) {
+    /** @noinspection ForgottenDebugOutputInspection */
     error_log('Error: "' . $ex->getMessage() . '" in ' . $ex->getFile() . ':' . $ex->getLine());
     //HUERAGA - vozmozhno 404/500 tut vivesti, ne uveren, chto tak horosho, to est tolko cherez Sapi?
     header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
     die;
-
-
 }

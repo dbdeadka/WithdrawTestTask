@@ -2,7 +2,7 @@
 
 namespace BITAPP\Core;
 
-class RouteData
+class ControllerStruct
 {
     /**
      * @var string $controller

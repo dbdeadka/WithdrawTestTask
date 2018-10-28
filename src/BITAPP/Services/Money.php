@@ -6,11 +6,11 @@ class Money
 {
     /**
      * @param int $amount
-     * @throws \RuntimeException
      * @return string
+     * @throws \RuntimeException
      */
     public static function moneyFormat(int $amount) : string
     {
-        return sprintf("%.8f", $amount/100000000);
+        return sprintf('%.8f', $amount/100000000);
     }
 }

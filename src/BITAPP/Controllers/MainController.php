@@ -11,6 +11,7 @@ class MainController
 {
     /**
      * @return string
+     * @throws \RuntimeException
      */
     public function renderAuthFormAction() :string
     {
@@ -20,13 +21,17 @@ class MainController
         return View::template('auth', $params, $errors);
     }
 
+    /**
+     * @return string
+     * @throws \RuntimeException
+     */
     public function loginAction() :string
     {
         $errors = [];
         if (Session::get()->isLogged()) {
             Router::get()->redirect(Router::ROUT_DASHBOARD);
         }
-        if (!isset($_POST['login']) || !isset($_POST['password'])) {
+        if (!isset($_POST['login'], $_POST['password'])) {
             throw new \RuntimeException('Attemption to hack or frontend error');
         }
         $login = trim($_POST['login']);
@@ -37,30 +42,37 @@ class MainController
             $errors['password'] = 'Empty password';
         }
 
+        $route = null;
+
         if (empty($errors)) {
             $user = UserMapper::loadByLogin($login);
             $error = false;
-            if (is_null($user)) {
+            if (null === $user) {
                 $error = true;
                 $errors['login'] = 'No such user or invalid password';
             }
-            if (!$error) {
-                if (!UserMapper::validPassword($user, $_POST['password'])) {
-                    $error = true;
-                    $errors['login'] = 'No such user or invalid password';
-                }
+
+            /** @noinspection NullPointerExceptionInspection */
+            if ((!$error) && (!UserMapper::validPassword($user, $_POST['password']))) {
+                $error = true;
+                $errors['login'] = 'No such user or invalid password';
             }
+
             if (!$error) {
+                /** @noinspection NullPointerExceptionInspection */
                 Session::get()->setUserId($user->getId());
-                Router::get()->redirect(Router::ROUT_DASHBOARD);
-                return '';
+                Session::get()->regenerateId(true);
+                $route = Router::ROUT_DASHBOARD;
             }
         }
         $params = [];
-        if (isset($_POST['login'])) {
-            $params['login'] = $_POST['login'];
+        if (null === $route) {
+            if (isset($_POST['login'])) {
+                $params['login'] = $_POST['login'];
+            }
+            $route = Router::ROUT_MAIN;
         }
-        Router::get()->redirect(Router::ROUT_MAIN, $params, $errors);
+        Router::get()->redirect($route, $params, $errors);
         return '';
     }
 

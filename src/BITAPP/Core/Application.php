@@ -25,16 +25,16 @@ class Application
     /**
      * @throws \RuntimeException
      */
-    public function process()
+    public function process() : void
     {
         $dispatchResult = Router::get()->dispatch();
         $dispatchResult = Firewall::get()->handle($dispatchResult);
-        if (!is_callable([$dispatchResult->getController(), $dispatchResult->getMethod()])) {
-            throw new \RuntimeException('Bad controller "' . $controllerClassName
-                . '" or method "' . $method . '" passed');
-        }
         $controllerClassName = $dispatchResult->getController();
         $methodName = $dispatchResult->getMethod();
+        if (!\is_callable([$dispatchResult->getController(), $dispatchResult->getMethod()])) {
+            throw new \RuntimeException('Bad controller "' . $controllerClassName
+                . '" or method "' . $methodName . '" passed');
+        }
         $controller = new $controllerClassName;
         $output = $controller->{$methodName}();
         if (!empty($output)) {

@@ -3,7 +3,9 @@
 namespace BITAPP\Services;
 
 use \BITAPP\AbstractManager;
-use BITAPP\Core\RouteData;
+use BITAPP\Core\ControllerStruct;
+use BITAPP\Controllers\PrivateRoomController;
+use BITAPP\Controllers\MainController;
 
 /**
  * @method static Firewall get()
@@ -12,15 +14,15 @@ class Firewall extends AbstractManager
 {
     protected static $instance;
 
-    const ZONE_ANON = 'anon';
-    const ZONE_AUTH = 'auth';
+    public const ZONE_ANON = 'anon';
+    public const ZONE_AUTH = 'auth';
 
     protected $zones;
 
-    const CONTROLLER_MAIN = 'BITAPP\Controllers\MainController';
-    const CONTROLLER_PRIVATEROOM = 'BITAPP\Controllers\PrivateRoomController';
+    public const CONTROLLER_MAIN = MainController::class;
+    public const CONTROLLER_PRIVATEROOM = PrivateRoomController::class;
 
-    public function init()
+    public function init() : void
     {
         $this->zones = [];
         $this->zones[self::ZONE_ANON] = [];
@@ -30,36 +32,38 @@ class Firewall extends AbstractManager
     }
 
     /**
-     * @param RouteData $routeData
+     * @param ControllerStruct $controllerStruct
+     * @return ControllerStruct
      * @throws \RuntimeException
-     * @return RouteData
      */
-    public function handle(RouteData $routeData) : RouteData
+    public function handle(ControllerStruct $controllerStruct) : ControllerStruct
     {
-        if ((!isset($this->zones[self::ZONE_ANON][$routeData->getController()]))
+        if (!isset($this->zones[self::ZONE_ANON][$controllerStruct->getController()])
                 &&
-            (!isset($this->zones[self::ZONE_AUTH][$routeData->getController()]))) {
-            throw new \RuntimeException('Invalid controller name (no such zone): ' . $routeData->getController());
+            (!isset($this->zones[self::ZONE_AUTH][$controllerStruct->getController()]))) {
+            throw new \RuntimeException(
+                'Invalid controller name (no such zone): ' . $controllerStruct->getController()
+            );
         }
 
-        if ((self::CONTROLLER_MAIN == $routeData->getController())
-            && ('renderAuthFormAction' == $routeData->getMethod())) {
+        if ((self::CONTROLLER_MAIN === $controllerStruct->getController())
+            && ('renderAuthFormAction' === $controllerStruct->getMethod())) {
             if (Session::get()->isLogged()) {
-                $routeData->setController(self::CONTROLLER_PRIVATEROOM);
-                $routeData->setMethod('renderAction');
+                $controllerStruct->setController(self::CONTROLLER_PRIVATEROOM);
+                $controllerStruct->setMethod('renderAction');
             }
-            return $routeData;
+            return $controllerStruct;
         }
 
         if (Session::get()->isLogged()) {
-            if (isset($this->zones[self::ZONE_ANON][$routeData->getController()])) {
+            if (isset($this->zones[self::ZONE_ANON][$controllerStruct->getController()])) {
                 throw new \RuntimeException('Invalid zone');
             }
         } else {
-            if (isset($this->zones[self::ZONE_AUTH][$routeData->getController()])) {
+            if (isset($this->zones[self::ZONE_AUTH][$controllerStruct->getController()])) {
                 throw new \RuntimeException('Invalid zone');
             }
         }
-        return $routeData;
+        return $controllerStruct;
     }
 }
