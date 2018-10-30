@@ -67,7 +67,7 @@ WHERE
      * @return User
      * @throws \RuntimeException
      */
-    public static function getUser(int $id, bool $lock) : User
+    public static function getUserById(int $id, bool $lock) : User
     {
         $user = self::loadById($id, $lock);
         if (null === $user) {
@@ -82,7 +82,7 @@ WHERE
      * @return User|null
      * @throws \RuntimeException
      */
-    public static function find(int $id, bool $lock) : ?User
+    public static function findById(int $id, bool $lock) : ?User
     {
         return self::loadById($id, $lock);
     }

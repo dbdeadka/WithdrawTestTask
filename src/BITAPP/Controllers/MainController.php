@@ -2,6 +2,7 @@
 
 namespace BITAPP\Controllers;
 
+use BITAPP\Core\Request;
 use \BITAPP\Services\Router;
 use \BITAPP\Services\Session;
 use \BITAPP\Mappers\UserMapper;
@@ -17,7 +18,7 @@ class MainController
     {
         $params = [];
         $errors = [];
-        Router::createArgumentsFromURI($_SERVER['QUERY_STRING'], $params, $errors);
+        Request::createArguments($params, $errors);
         return View::template('auth', $params, $errors);
     }
 
@@ -28,17 +29,15 @@ class MainController
     public function loginAction() :string
     {
         $errors = [];
-        if (Session::get()->isLogged()) {
-            Router::get()->redirect(Router::ROUT_DASHBOARD);
+
+        if ((null === Request::request('login')) || (null === Request::request('password'))) {
+            throw new \RuntimeException('Attemption to hack or frontend error (no necessary post values)');
         }
-        if (!isset($_POST['login'], $_POST['password'])) {
-            throw new \RuntimeException('Attemption to hack or frontend error');
-        }
-        $login = trim($_POST['login']);
-        if (empty($login)) {
+        $login = trim(Request::request('login'));
+        if ('' === $login) {
             $errors['login'] = 'Empty login';
         }
-        if (empty($_POST['password'])) {
+        if (null === Request::request('password')) {
             $errors['password'] = 'Empty password';
         }
 
@@ -53,7 +52,7 @@ class MainController
             }
 
             /** @noinspection NullPointerExceptionInspection */
-            if ((!$error) && (!UserMapper::validPassword($user, $_POST['password']))) {
+            if ((!$error) && (!UserMapper::validPassword($user, Request::request('password')))) {
                 $error = true;
                 $errors['login'] = 'No such user or invalid password';
             }
@@ -67,8 +66,8 @@ class MainController
         }
         $params = [];
         if (null === $route) {
-            if (isset($_POST['login'])) {
-                $params['login'] = $_POST['login'];
+            if (null !== Request::request('login')) {
+                $params['login'] = Request::request('login');
             }
             $route = Router::ROUT_MAIN;
         }

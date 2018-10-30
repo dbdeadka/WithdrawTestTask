@@ -28,16 +28,22 @@ class Application
     public function process() : void
     {
         $dispatchResult = Router::get()->dispatch();
-        $dispatchResult = Firewall::get()->handle($dispatchResult);
-        $controllerClassName = $dispatchResult->getController();
-        $methodName = $dispatchResult->getMethod();
-        if (!\is_callable([$dispatchResult->getController(), $dispatchResult->getMethod()])) {
-            throw new \RuntimeException('Bad controller "' . $controllerClassName
-                . '" or method "' . $methodName . '" passed');
+        $firewallResult = Firewall::get()->handle($dispatchResult);
+        $output = '';
+        if (null !== $firewallResult->getRedirectUri()) {
+            Router::get()->redirect($firewallResult->getRedirectUri());
+        } else {
+            $controllerClassName = $firewallResult->getController();
+            $methodName = $firewallResult->getMethod();
+            if (!\is_callable([$firewallResult->getController(), $firewallResult->getMethod()])) {
+                throw new \RuntimeException('Bad controller "' . $controllerClassName
+                    . '" or method "' . $methodName . '" passed');
+            }
+            $controller = new $controllerClassName;
+            Request::createFromGlobals();
+            $output = $controller->{$methodName}();
         }
-        $controller = new $controllerClassName;
-        $output = $controller->{$methodName}();
-        if (!empty($output)) {
+        if ('' !== $output) {
             echo $output;
         }
     }

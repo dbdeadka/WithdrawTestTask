@@ -41,12 +41,12 @@ class Database extends AbstractManager
         );
         try {
             $this->connHander = new \PDO($mysql_dsn, $dbconfig['username'], $dbconfig['password']);
-            $this->connHander->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-            $this->connHander->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
-            $this->connHander->setAttribute(\PDO::MYSQL_ATTR_INIT_COMMAND, "SET NAMES 'utf8'");
         } catch (\PDOException $ex) {
             throw new \RuntimeException($ex->getMessage());
         }
+        $this->connHander->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->connHander->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+        $this->connHander->setAttribute(\PDO::MYSQL_ATTR_INIT_COMMAND, "SET NAMES 'utf8'");
     }
 
     /**

@@ -16,7 +16,7 @@ class Router extends AbstractManager
 
     private $routers = [];
 
-    public const ROUT_MAIN = 'main';
+    public const ROUT_MAIN = '';
     public const ROUT_LOGIN = 'login';
     public const ROUT_DASHBOARD = 'dashboard';
     public const ROUT_LOGOUT = 'logout';
@@ -73,9 +73,6 @@ class Router extends AbstractManager
      */
     public function setRoute(string $route, ControllerStruct $controllerStruct) : void
     {
-        if (empty($route)) {
-            throw new \InvalidArgumentException('Empty route.');
-        }
         $controllerName =  $controllerStruct->getController();
         if ((null === $controllerName) || ('' === $controllerName)) {
             throw new \InvalidArgumentException('Empty controller in routerData.');
@@ -85,21 +82,6 @@ class Router extends AbstractManager
             throw new \InvalidArgumentException('Empty method in routerData.');
         }
         $this->routers[$route] = $controllerStruct;
-    }
-
-    public static function createArgumentsFromURI(string $uri, array &$params, array &$errors) : void
-    {
-        parse_str(urldecode($uri), $parseResult);
-        $params = [];
-        $errors = [];
-        foreach (/**@var array $parseResult*/$parseResult as $key => $val) {
-            if (0 === strncmp($key, 'err__', 5)) {
-                $errors [(string)substr($key, 5/*5 is the lentgth of 'err__'*/)] = $val;
-            }
-            if (0 === strncmp($key, 'par__', 5)) {
-                $params [(string)substr($key, 5/*5 is the lentgth of 'par__'*/)] = $val;
-            }
-        }
     }
 
     public function redirect(string $route, array $fields = [], array $errors = []) : void
@@ -123,7 +105,7 @@ class Router extends AbstractManager
      */
     public function dispatch() : ControllerStruct
     {
-        $route = $_SERVER['REQUEST_URI'];
+        $route = $_SERVER['REQUEST_URI']; //HUERAGA - $_SERVER тоже в Request.php?
         $pos = strpos($route, '?');
         if ($pos) {
             $route = substr($route, 0, $pos);

@@ -2,6 +2,7 @@
 
 namespace BITAPP\Controllers;
 
+use BITAPP\Core\Request;
 use \BITAPP\Mappers\UserMapper;
 use \BITAPP\Services\View;
 use \BITAPP\Services\Router;
@@ -19,10 +20,10 @@ class PrivateRoomController
     public function renderAction() : string
     {
         $userId = (int)Session::get()->getUserId();
-        $user = UserMapper::getUser($userId, false);
+        $user = UserMapper::getUserById($userId, false);
         $params = [];
         $errors = [];
-        Router::createArgumentsFromURI($_SERVER['QUERY_STRING'], $params, $errors);
+        Request::createArguments($params, $errors);
         $params['balance'] = Money::moneyFormat($user->getBalance());
         return View::template('dashboard', $params, $errors);
     }
@@ -39,8 +40,8 @@ class PrivateRoomController
 
         try {
             Database::get()->beginTransaction();
-            $user = UserMapper::getUser($user_id, true);
-            $amount = (int)$_POST['amount'];
+            $user = UserMapper::getUserById($user_id, true);
+            $amount = (int)Request::request('amount');
             if ($amount <= 0) {
                 $errors['amount'] = 'Sum must be positive integer';
                 throw new \InvalidArgumentException('Bad sum');
