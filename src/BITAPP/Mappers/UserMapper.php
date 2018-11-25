@@ -37,10 +37,25 @@ class UserMapper extends AbstractMapper
     /**
      * @param int $id
      * @param bool $lock
+     * @return User
+     * @throws \RuntimeException
+     */
+    public static function getUserById(int $id, bool $lock) : User
+    {
+        $user = self::findById($id, $lock);
+        if (null === $user) {
+            throw new \RuntimeException('No user with id = ' . $id);
+        }
+        return $user;
+    }
+
+    /**
+     * @param int $id
+     * @param bool $lock
      * @return User|null
      * @throws \RuntimeException
      */
-    public static function loadById(int $id, bool $lock) : ?User
+    public static function findById(int $id, bool $lock) : ?User
     {
         $query = '
 SELECT 
@@ -59,32 +74,6 @@ WHERE
         }
         $result = Database::get()->getResult($query);
         return empty($result) ? null : self::createEntityFromDB($result[0]);
-    }
-
-    /**
-     * @param int $id
-     * @param bool $lock
-     * @return User
-     * @throws \RuntimeException
-     */
-    public static function getUserById(int $id, bool $lock) : User
-    {
-        $user = self::loadById($id, $lock);
-        if (null === $user) {
-            throw new \RuntimeException('No user with id = ' . $id);
-        }
-        return $user;
-    }
-
-    /**
-     * @param int $id
-     * @param bool $lock
-     * @return User|null
-     * @throws \RuntimeException
-     */
-    public static function findById(int $id, bool $lock) : ?User
-    {
-        return self::loadById($id, $lock);
     }
 
     /**

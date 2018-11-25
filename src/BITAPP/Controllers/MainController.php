@@ -7,6 +7,7 @@ use \BITAPP\Services\Router;
 use \BITAPP\Services\Session;
 use \BITAPP\Mappers\UserMapper;
 use \BITAPP\Services\View;
+use \BITAPP\Form\Data\LoginFormData;
 
 class MainController
 {
@@ -16,10 +17,8 @@ class MainController
      */
     public function renderAuthFormAction() :string
     {
-        $params = [];
-        $errors = [];
-        Request::createArguments($params, $errors);
-        return View::template('auth', $params, $errors);
+        $templateFromURIData = Request::createArguments();
+        return View::template('auth', $templateFromURIData->getParams(), $templateFromURIData->getErrors());
     }
 
     /**
@@ -30,31 +29,27 @@ class MainController
     {
         $errors = [];
 
-        if ((null === Request::request('login')) || (null === Request::request('password'))) {
-            throw new \RuntimeException('Attemption to hack or frontend error (no necessary post values)');
-        }
-        $login = trim(Request::request('login'));
-        if ('' === $login) {
-            $errors['login'] = 'Empty login';
-        }
-        if (null === Request::request('password')) {
-            $errors['password'] = 'Empty password';
-        }
+        $data = new LoginFormData(Request::getAllRequest());
+        $errors = $data->getErrors();
+
+        $login = $data->getLogin();
+        $password = $data->getPassword();
 
         $route = null;
 
         if (empty($errors)) {
             $user = UserMapper::loadByLogin($login);
             $error = false;
+            $userFieldErrMsg = 'No such user or invalid password';
             if (null === $user) {
                 $error = true;
-                $errors['login'] = 'No such user or invalid password';
+                $errors['login'] = $userFieldErrMsg;
             }
 
             /** @noinspection NullPointerExceptionInspection */
-            if ((!$error) && (!UserMapper::validPassword($user, Request::request('password')))) {
+            if ((!$error) && (!UserMapper::validPassword($user, $password))) {
                 $error = true;
-                $errors['login'] = 'No such user or invalid password';
+                $errors['login'] = $userFieldErrMsg;
             }
 
             if (!$error) {
@@ -65,9 +60,9 @@ class MainController
             }
         }
         $params = [];
-        if (null === $route) {
-            if (null !== Request::request('login')) {
-                $params['login'] = Request::request('login');
+        if (!empty($errors)) {
+            if ($login) {
+                $params['login'] = $login;
             }
             $route = Router::ROUT_MAIN;
         }

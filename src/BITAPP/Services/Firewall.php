@@ -18,10 +18,14 @@ class Firewall extends AbstractManager
     public const ZONE_ANON = 'anon';
     public const ZONE_AUTH = 'auth';
 
-    protected $zones;
-
     public const CONTROLLER_MAIN = MainController::class;
     public const CONTROLLER_PRIVATEROOM = PrivateRoomController::class;
+
+    public const RENDER_AUTH_FORM_ACTION = 'renderAuthFormAction';
+
+    protected $zones;
+
+    public $redirectCases;
 
     public function init() : void
     {
@@ -30,6 +34,10 @@ class Firewall extends AbstractManager
         $this->zones[self::ZONE_AUTH] = [];
         $this->zones[self::ZONE_ANON][self::CONTROLLER_MAIN] = true;
         $this->zones[self::ZONE_AUTH][self::CONTROLLER_PRIVATEROOM] = true;
+
+        $this->redirectCases = [];
+        $this->redirectCases [self::CONTROLLER_MAIN . self::RENDER_AUTH_FORM_ACTION . (int)true/*IsLogged*/]
+            = Router::ROUT_DASHBOARD;
     }
 
     /**
@@ -48,12 +56,10 @@ class Firewall extends AbstractManager
             );
         }
 
-        if ((self::CONTROLLER_MAIN === $controllerStruct->getController())
-            && ('renderAuthFormAction' === $controllerStruct->getMethod())
-            && Session::get()->isLogged()
-        ) {
-            $firewallStruct->setRedirectUri(Router::ROUT_DASHBOARD);
-        } else {
+        $currentCase = $controllerStruct->getController() . $controllerStruct->getMethod()
+            . (int)Session::get()->isLogged();
+
+        if (!array_key_exists($currentCase, $this->redirectCases)) {
             if (Session::get()->isLogged()) {
                 if (isset($this->zones[self::ZONE_ANON][$controllerStruct->getController()])) {
                     throw new \RuntimeException('Invalid zone');
@@ -63,6 +69,11 @@ class Firewall extends AbstractManager
                     throw new \RuntimeException('Invalid zone');
                 }
             }
+        }
+
+        if (array_key_exists($currentCase, $this->redirectCases)) {
+            $firewallStruct->setRedirectUri($this->redirectCases[$currentCase]);
+        } else {
             $firewallStruct->setMethod($controllerStruct->getMethod());
             $firewallStruct->setController($controllerStruct->getController());
         }

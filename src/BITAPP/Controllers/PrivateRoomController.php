@@ -2,7 +2,8 @@
 
 namespace BITAPP\Controllers;
 
-use BITAPP\Core\Request;
+use \BITAPP\Core\Request;
+use \BITAPP\Core\TemplateFromURIData;
 use \BITAPP\Mappers\UserMapper;
 use \BITAPP\Services\View;
 use \BITAPP\Services\Router;
@@ -10,6 +11,7 @@ use \BITAPP\Services\Database;
 use \BITAPP\Services\Banking;
 use \BITAPP\Services\Money;
 use \BITAPP\Services\Session;
+use \BITAPP\Form\Data\DashboardFormData;
 
 class PrivateRoomController
 {
@@ -19,13 +21,12 @@ class PrivateRoomController
      */
     public function renderAction() : string
     {
-        $userId = (int)Session::get()->getUserId();
+        $userId = Session::get()->getUserId();
         $user = UserMapper::getUserById($userId, false);
-        $params = [];
-        $errors = [];
-        Request::createArguments($params, $errors);
+        $templateFromURIData = Request::createArguments();
+        $params = $templateFromURIData->getParams();
         $params['balance'] = Money::moneyFormat($user->getBalance());
-        return View::template('dashboard', $params, $errors);
+        return View::template('dashboard', $params, $templateFromURIData->getErrors());
     }
 
     /**
@@ -41,11 +42,13 @@ class PrivateRoomController
         try {
             Database::get()->beginTransaction();
             $user = UserMapper::getUserById($user_id, true);
-            $amount = (int)Request::request('amount');
-            if ($amount <= 0) {
-                $errors['amount'] = 'Sum must be positive integer';
-                throw new \InvalidArgumentException('Bad sum');
+
+            $data = new DashboardFormData(Request::getAllRequest());
+            $errors = $data->getErrors();
+            if (isset($errors['amount'])) {
+                throw new \InvalidArgumentException('Bad amount');
             }
+            $amount = $data->getAmount();
 
             if ($user->getBalance() < $amount) {
                 Database::get()->rollBack();

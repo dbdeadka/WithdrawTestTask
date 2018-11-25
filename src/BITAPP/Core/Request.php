@@ -7,7 +7,7 @@ class Request
     /**
      * @var array
      */
-    private static $get = [];
+    private static $query = [];
 
     /**
      * @var array
@@ -20,18 +20,17 @@ class Request
         foreach ($_POST as $key => $val) {
             self::$post[$key] = $val;
         }
-        //HUERAGA - правильная ли обработка? то, что содержимое QUERY_STRING загоняю в get?
         parse_str(urldecode($_SERVER['QUERY_STRING']), $parseResult);
         foreach (/**@var array $parseResult*/$parseResult as $key => $val) {
-            self::$get[$key] = $val;
+            self::$query[$key] = $val;
         }
     }
 
-    public static function createArguments(array &$params, array &$errors) : void
+    public static function createArguments() : TemplateFromURIData
     {
         $params = [];
         $errors = [];
-        foreach (self::$get as $key => $val) {
+        foreach (self::$query as $key => $val) {
             if (0 === strncmp($key, 'err__', 5)) {
                 $errors [(string)substr($key, 5/*5 is the lentgth of 'err__'*/)] = $val;
             }
@@ -39,6 +38,10 @@ class Request
                 $params [(string)substr($key, 5/*5 is the lentgth of 'par__'*/)] = $val;
             }
         }
+        $templateFromURIData = new TemplateFromURIData;
+        $templateFromURIData->setErrors($errors);
+        $templateFromURIData->setParams($params);
+        return $templateFromURIData;
     }
 
     /**
@@ -48,7 +51,7 @@ class Request
      */
     public static function query(string $key, string $default = null) : ?string
     {
-        return self::$get[$key] ?? $default;
+        return self::$query[$key] ?? $default;
     }
 
     /**
@@ -59,5 +62,15 @@ class Request
     public static function request(string $key, string $default = null) : ?string
     {
         return self::$post[$key] ?? $default;
+    }
+
+    public static function getAllQuery() : array
+    {
+        return self::$query;
+    }
+
+    public static function getAllRequest() : array
+    {
+        return self::$post;
     }
 }

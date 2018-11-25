@@ -27,15 +27,15 @@ class Application
      */
     public function process() : void
     {
-        $dispatchResult = Router::get()->dispatch();
-        $firewallResult = Firewall::get()->handle($dispatchResult);
+        $controllerMethodPair = Router::get()->dispatch();
+        $firewallControllerMethodPair = Firewall::get()->handle($controllerMethodPair);
         $output = '';
-        if (null !== $firewallResult->getRedirectUri()) {
-            Router::get()->redirect($firewallResult->getRedirectUri());
+        if (null !== $firewallControllerMethodPair->getRedirectUri()) {
+            Router::get()->redirect($firewallControllerMethodPair->getRedirectUri());
         } else {
-            $controllerClassName = $firewallResult->getController();
-            $methodName = $firewallResult->getMethod();
-            if (!\is_callable([$firewallResult->getController(), $firewallResult->getMethod()])) {
+            $controllerClassName = $firewallControllerMethodPair->getController();
+            $methodName = $firewallControllerMethodPair->getMethod();
+            if (!\is_callable([$controllerClassName, $methodName])) {
                 throw new \RuntimeException('Bad controller "' . $controllerClassName
                     . '" or method "' . $methodName . '" passed');
             }
