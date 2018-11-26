@@ -12,13 +12,13 @@ class Request
     /**
      * @var array
      */
-    private static $post = [];
+    private static $request = [];
 
 
     public static function createFromGlobals() : void
     {
         foreach ($_POST as $key => $val) {
-            self::$post[$key] = $val;
+            self::$request[$key] = $val;
         }
         parse_str(urldecode($_SERVER['QUERY_STRING']), $parseResult);
         foreach (/**@var array $parseResult*/$parseResult as $key => $val) {
@@ -61,7 +61,7 @@ class Request
      */
     public static function request(string $key, string $default = null) : ?string
     {
-        return self::$post[$key] ?? $default;
+        return self::$request[$key] ?? $default;
     }
 
     public static function getAllQuery() : array
@@ -71,6 +71,6 @@ class Request
 
     public static function getAllRequest() : array
     {
-        return self::$post;
+        return self::$request;
     }
 }

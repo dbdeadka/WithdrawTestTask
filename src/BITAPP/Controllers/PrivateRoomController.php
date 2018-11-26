@@ -43,12 +43,12 @@ class PrivateRoomController
             Database::get()->beginTransaction();
             $user = UserMapper::getUserById($user_id, true);
 
-            $data = new DashboardFormData(Request::getAllRequest());
-            $errors = $data->getErrors();
-            if (isset($errors['amount'])) {
-                throw new \InvalidArgumentException('Bad amount');
+            $dashboardFormData = new DashboardFormData(Request::getAllRequest());
+            $errors = $dashboardFormData->getErrors();
+            if (!empty($errors)) {
+                throw new \InvalidArgumentException('Invalid form data');
             }
-            $amount = $data->getAmount();
+            $amount = $dashboardFormData->getAmount();
 
             if ($user->getBalance() < $amount) {
                 Database::get()->rollBack();

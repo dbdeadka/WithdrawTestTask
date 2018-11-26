@@ -59,7 +59,9 @@ class Firewall extends AbstractManager
         $currentCase = $controllerStruct->getController() . $controllerStruct->getMethod()
             . (int)Session::get()->isLogged();
 
-        if (!array_key_exists($currentCase, $this->redirectCases)) {
+        if (array_key_exists($currentCase, $this->redirectCases)) {
+            $firewallStruct->setRedirectUri($this->redirectCases[$currentCase]);
+        } else {
             if (Session::get()->isLogged()) {
                 if (isset($this->zones[self::ZONE_ANON][$controllerStruct->getController()])) {
                     throw new \RuntimeException('Invalid zone');
@@ -69,11 +71,6 @@ class Firewall extends AbstractManager
                     throw new \RuntimeException('Invalid zone');
                 }
             }
-        }
-
-        if (array_key_exists($currentCase, $this->redirectCases)) {
-            $firewallStruct->setRedirectUri($this->redirectCases[$currentCase]);
-        } else {
             $firewallStruct->setMethod($controllerStruct->getMethod());
             $firewallStruct->setController($controllerStruct->getController());
         }
