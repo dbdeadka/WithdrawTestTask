@@ -15,7 +15,7 @@ trait CanBeEmptyTrait
      * @param bool $canBeEmpty
      * @return $this
      */
-    public function setCanBeEmpty(bool $canBeEmpty)
+    public function setCanBeEmpty(bool $canBeEmpty) :self
     {
         $this->canBeEmpty = $canBeEmpty;
         return $this;

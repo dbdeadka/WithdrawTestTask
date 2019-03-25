@@ -9,7 +9,7 @@ use \BITAPP\Mappers\UserMapper;
 use \BITAPP\Services\View;
 use \BITAPP\Form\Data\LoginFormData;
 
-class MainController
+class MainController extends BaseController
 {
     /**
      * @return string
@@ -67,15 +67,6 @@ class MainController
             $route = Router::ROUT_MAIN;
         }
         Router::get()->redirect($route, $params, $errors);
-        return '';
-    }
-
-    /**
-     * @return string
-     */
-    public function render404PageAction() :string
-    {
-        header('HTTP/1.0 404 Not Found');
         return '';
     }
 }

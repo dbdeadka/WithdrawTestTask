@@ -3,6 +3,7 @@
 namespace BITAPP\Services;
 
 use \BITAPP\AbstractManager;
+use BITAPP\Controllers\BaseController;
 use BITAPP\Core\ControllerStruct;
 use BITAPP\Controllers\MainController;
 use BITAPP\Controllers\PrivateRoomController;
@@ -88,10 +89,10 @@ class Router extends AbstractManager
     {
         $parameters = [];
         foreach ($fields as $field => $val) {
-            $parameters [] = urlencode('par__' . $field. '=' . $val);
+            $parameters [] =  'par__' . urlencode($field) . '=' . urlencode($val);
         }
         foreach ($errors as $field => $val) {
-            $parameters [] = urlencode('err__' . $field. '=' . $val);
+            $parameters [] = 'err__' . urlencode($field) . '=' . urlencode($val);
         }
         if (!empty($parameters)) {
             $route .= '?' . implode('&', $parameters);

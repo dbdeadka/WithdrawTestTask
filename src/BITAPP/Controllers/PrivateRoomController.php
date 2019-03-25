@@ -13,7 +13,7 @@ use \BITAPP\Services\Money;
 use \BITAPP\Services\Session;
 use \BITAPP\Form\Data\DashboardFormData;
 
-class PrivateRoomController
+class PrivateRoomController extends BaseController
 {
     /**
      * @return string
@@ -46,7 +46,7 @@ class PrivateRoomController
             $dashboardFormData = new DashboardFormData(Request::getAllRequest());
             $errors = $dashboardFormData->getErrors();
             if (!empty($errors)) {
-                throw new \InvalidArgumentException('Invalid form data');
+                throw new \InvalidArgumentException('');
             }
             $amount = $dashboardFormData->getAmount();
 

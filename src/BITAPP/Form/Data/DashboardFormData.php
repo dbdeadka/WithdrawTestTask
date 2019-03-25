@@ -15,7 +15,7 @@ class DashboardFormData extends AbstractFormData
     protected function getRules(): array
     {
         return [
-            'amount' => new RuleContainer([new Trim(), new PositiveInteger()])
+            'amount' => new RuleContainer([new Trim(), new PositiveInteger(false, 'Amount must be positive')])
         ];
     }
 

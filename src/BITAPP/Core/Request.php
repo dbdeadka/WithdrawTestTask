@@ -20,8 +20,7 @@ class Request
         foreach ($_POST as $key => $val) {
             self::$request[$key] = $val;
         }
-        parse_str(urldecode($_SERVER['QUERY_STRING']), $parseResult);
-        foreach (/**@var array $parseResult*/$parseResult as $key => $val) {
+        foreach ($_GET as $key => $val) {
             self::$query[$key] = $val;
         }
     }
